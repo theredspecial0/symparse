@@ -10,7 +10,7 @@
 int main(int argc, char **argv)
 {
   if (argc < 2) {
-    printf("Usage: %s <elf_executable>\n", argv[0]);
+    fprintf(stderr, "Usage: %s <elf_executable>\n", argv[0]);
     return 1;
   }
 
@@ -44,8 +44,15 @@ int main(int argc, char **argv)
     }
   }
 
+  if (section == NULL) {
+    fprintf(stderr, "No symbol table found.\n");
+    elf_end(exec_handle);
+    close(fd);
+    return 0;
+  }
+
   data = elf_getdata(section, NULL);
-  count = section_header.sh_size / section_header.sh_entsize;
+  count = section_header.sh_entsize != 0 ? section_header.sh_size / section_header.sh_entsize : 0;
 
   for (int ii = 0; ii < count; ++ii) {
     if (gelf_getsym(data, ii, &symbol) != &symbol) {
